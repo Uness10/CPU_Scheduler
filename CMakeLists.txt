@@ -9,6 +9,8 @@ add_executable(scheduler
     src/main.cpp
     src/process.cpp
     src/process_table.cpp
+    src/fcfs.cpp
+    src/scheduler.cpp
     )
 
 target_include_directories(scheduler PRIVATE include)

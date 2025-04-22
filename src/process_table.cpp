@@ -26,8 +26,13 @@ const Process* Process_Table::get_process(int pid) const {
     return (it != table.end()) ? &(it->second) : nullptr;
 }
 
-const map<int, Process>& Process_Table::get_all() const {
-    return table;
+vector<Process> Process_Table::get_all() const {
+    vector<Process> processes;
+    processes.reserve(table.size());
+    for (const auto& pair : table) {
+        processes.push_back(pair.second);
+    }
+    return processes;
 }
 
 int Process_Table::get_size() const {

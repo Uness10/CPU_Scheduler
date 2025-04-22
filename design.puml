@@ -1,0 +1,59 @@
+@startuml
+
+' Define process states
+enum State {
+    READY
+    RUNNING
+    BLOCKED
+}
+
+' Define Process class
+class Process {
+    - int pid
+    - int arrival_time
+    - int burst_time
+    - int priority
+}
+
+
+' Process_Table manages multiple processes
+class Process_Table {
+    + add_process()
+    + remove_process()
+    + get_process()
+    + get_all()
+}
+
+' Abstract interface for scheduling algorithms
+interface IAlgorithm {
+    + execute(Process_Table table)
+}
+
+' Concrete implementations of algorithms
+class FCFServed_Algorithm
+class SJFirst_Algorithm
+class RRobin_Algorithm
+class Priority_Algorithm
+class PRRobin_Algorithm
+
+' The main Scheduler that coordinates everything
+class Scheduler {
+    + run()
+}
+
+Process --> State 
+' Inheritance arrows (algorithm implementations)
+FCFServed_Algorithm ..|> IAlgorithm
+RRobin_Algorithm ..|> IAlgorithm
+SJFirst_Algorithm ..|> IAlgorithm
+Priority_Algorithm ..|> IAlgorithm
+PRRobin_Algorithm ..|> IAlgorithm
+
+' Scheduler depends on an algorithm and a process table
+Scheduler --> IAlgorithm : uses >
+Scheduler --> Process_Table : owns >
+
+' Association: Process_Table contains multiple Processes
+Process_Table "1" --> "*" Process : manages >
+
+@enduml

@@ -16,7 +16,7 @@ public:
     int remove_process(int pid) ;
 
     const Process* get_process(int pid) const  ;
-    const map<int, Process>& get_all() const ;
+    vector<Process> get_all() const ;
     int get_size() const ;
 
     void set_process_state(int pid, State new_state) ;
