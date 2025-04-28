@@ -11,6 +11,8 @@ add_executable(scheduler
     src/process_table.cpp
     src/fcfs.cpp
     src/scheduler.cpp
+    src/sfj.cpp
+    src/psch.cpp
     )
 
 target_include_directories(scheduler PRIVATE include)

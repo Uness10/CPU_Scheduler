@@ -1,11 +1,11 @@
 #pragma once 
 #include "algorithm.h"
-
+#include "process_table.h"
 // shortest job first (SJF) scheduling algorithm
 class SJF :public Algorithm {
     public :
-        SJF() = default; 
-        ~SJF() override = default; 
-        void run() override;
+        SJF() ; 
+        ~SJF() override ; 
+        vector<int> execute(Process_Table& table) override;
 };
 
