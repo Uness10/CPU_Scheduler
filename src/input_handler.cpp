@@ -1,17 +1,16 @@
 #include "input_handler.h"
-#include <iostream>
-#include <sstream>
-#include <chrono>
+
+
 
 InputHandler::InputHandler() {
     // Seed the random number generator with current time
-    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
-    rng = std::mt19937(seed);
+    unsigned seed = chrono::system_clock::now().time_since_epoch().count();
+    rng = mt19937(seed);
     
     // Initialize distributions with default ranges
-    arrival_dist = std::uniform_int_distribution<int>(0, 20);
-    burst_dist = std::uniform_int_distribution<int>(1, 10);
-    priority_dist = std::uniform_int_distribution<int>(0, 10);
+    arrival_dist = uniform_int_distribution<int>(0, 20);
+    burst_dist = uniform_int_distribution<int>(1, 10);
+    priority_dist = uniform_int_distribution<int>(0, 10);
 }
 
 Process_Table InputHandler::generate_random_processes(int num_processes, 
@@ -21,9 +20,9 @@ Process_Table InputHandler::generate_random_processes(int num_processes,
     Process_Table table;
     
     // Update distributions with provided ranges
-    arrival_dist = std::uniform_int_distribution<int>(min_arrival, max_arrival);
-    burst_dist = std::uniform_int_distribution<int>(min_burst, max_burst);
-    priority_dist = std::uniform_int_distribution<int>(min_priority, max_priority);
+    arrival_dist = uniform_int_distribution<int>(min_arrival, max_arrival);
+    burst_dist = uniform_int_distribution<int>(min_burst, max_burst);
+    priority_dist = uniform_int_distribution<int>(min_priority, max_priority);
     
     for (int i = 0; i < num_processes; i++) {
         int arrival_time = arrival_dist(rng);
@@ -36,24 +35,24 @@ Process_Table InputHandler::generate_random_processes(int num_processes,
     return table;
 }
 
-Process_Table InputHandler::read_processes_from_file(const std::string& filename) {
+Process_Table InputHandler::read_processes_from_file(const string& filename) {
     Process_Table table;
-    std::ifstream file(filename);
+    ifstream file(filename);
     
     if (!file.is_open()) {
-        std::cerr << "Error: Could not open file " << filename << std::endl;
+        cerr << "Error: Could not open file " << filename << endl;
         return table;
     }
     
-    std::string line;
+    string line;
     int line_num = 0;
     
     // Skip header line if exists
-    std::getline(file, line);
+    getline(file, line);
     line_num++;
     
     // Check if the first line is a header or data
-    bool is_header = line.find_first_not_of("0123456789, \t") != std::string::npos;
+    bool is_header = line.find_first_not_of("0123456789, \t") != string::npos;
     if (!is_header) {
         // If not a header, reset file to beginning to read the first line again
         file.clear();
@@ -61,16 +60,16 @@ Process_Table InputHandler::read_processes_from_file(const std::string& filename
         line_num = 0;
     }
     
-    while (std::getline(file, line)) {
+    while (getline(file, line)) {
         line_num++;
-        std::istringstream iss(line);
+        istringstream iss(line);
         int arrival_time, burst_time, priority;
         
         // Try to parse the line with format: arrival_time burst_time priority
         if (iss >> arrival_time >> burst_time >> priority) {
             table.add_process(arrival_time, burst_time, priority);
         } else {
-            std::cerr << "Warning: Could not parse line " << line_num << ": " << line << std::endl;
+            cerr << "Warning: Could not parse line " << line_num << ": " << line << endl;
         }
     }
     
@@ -78,22 +77,22 @@ Process_Table InputHandler::read_processes_from_file(const std::string& filename
     return table;
 }
 
-bool InputHandler::write_processes_to_file(const Process_Table& table, const std::string& filename) {
-    std::ofstream file(filename);
+bool InputHandler::write_processes_to_file(const Process_Table& table, const string& filename) {
+    ofstream file(filename);
     
     if (!file.is_open()) {
-        std::cerr << "Error: Could not open file " << filename << " for writing" << std::endl;
+        cerr << "Error: Could not open file " << filename << " for writing" << endl;
         return false;
     }
     
     // Write header
-    file << "arrival_time burst_time priority" << std::endl;
+    file << "arrival_time burst_time priority" << endl;
     
     // Write each process
     for (const auto& process : table.get_all()) {
         file << process.get_arrival_time() << " "
              << process.get_burst_time() << " "
-             << process.get_priority() << std::endl;
+             << process.get_priority() << endl;
     }
     
     file.close();
