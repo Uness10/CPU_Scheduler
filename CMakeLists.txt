@@ -13,6 +13,7 @@ add_executable(scheduler
     src/scheduler.cpp
     src/sfj.cpp
     src/psch.cpp
+    src/input_handler.cpp
     )
 
 target_include_directories(scheduler PRIVATE include)
