@@ -65,7 +65,7 @@ package "Backend (Python)" {
         + set_time_quantum(quantum: int): void
         + schedule(): void
     }
-
+    
     class PriorityRRScheduler {
         - time_quantum: int
         + set_time_quantum(quantum: int): void
