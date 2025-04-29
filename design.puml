@@ -1,59 +1,170 @@
-@startuml
+@startuml CPU Scheduler Simulation
 
-' Define process states
-enum State {
-    READY
-    RUNNING
-    BLOCKED
+' Define the styling
+skinparam classFontSize 14
+skinparam classAttributeFontSize 12
+skinparam classBackgroundColor LightBlue
+skinparam classBorderColor DarkBlue
+skinparam arrowColor DarkBlue
+
+package "Backend (Python)" {
+    ' Core classes
+    class Process {
+        - process_id: int
+        - arrival_time: int
+        - burst_time: int
+        - priority: int
+        - remaining_time: int
+        - start_time: int
+        - completion_time: int
+        - waiting_time: int
+        - turnaround_time: int
+        - response_time: int
+        + calculate_waiting_time(): void
+        + calculate_turnaround_time(): void
+        + calculate_response_time(): void
+    }
+
+    class ProcessGenerator {
+        + generate_random_processes(count: int, burst_range: tuple, arrival_range: tuple, priority_range: tuple): list<Process>
+        + load_processes_from_file(filename: str): list<Process>
+        + save_processes_to_file(processes: list<Process>, filename: str): void
+    }
+
+    abstract class Scheduler {
+        # processes: list<Process>
+        # current_time: int
+        # completion_order: list<Process>
+        # gantt_chart: list<dict>
+        + set_processes(processes: list<Process>): void
+        + {abstract} schedule(): void
+        + get_average_waiting_time(): float
+        + get_average_turnaround_time(): float
+        + get_average_response_time(): float
+        + get_cpu_utilization(): float
+        + get_gantt_chart(): list<dict>
+        + get_completion_order(): list<Process>
+        # update_gantt_chart(process: Process, start: int, end: int): void
+    }
+
+    ' Concrete Scheduler implementations
+    class FCFSScheduler {
+        + schedule(): void
+    }
+
+    class SJFScheduler {
+        + schedule(): void
+    }
+
+    class PriorityScheduler {
+        + schedule(): void
+    }
+
+    class RoundRobinScheduler {
+        - time_quantum: int
+        + set_time_quantum(quantum: int): void
+        + schedule(): void
+    }
+
+    class PriorityRRScheduler {
+        - time_quantum: int
+        + set_time_quantum(quantum: int): void
+        + schedule(): void
+    }
+
+    ' Simulation controller
+    class SimulationController {
+        - scheduler: Scheduler
+        - processes: list<Process>
+        - process_generator: ProcessGenerator
+        + load_processes(source: str, params: dict): void
+        + set_scheduler(algorithm: str, params: dict): void
+        + run_simulation(): dict
+        + get_performance_metrics(): dict
+        + get_visualization_data(): dict
+    }
+
+    ' API interface
+    class APIEndpoints {
+        + generate_processes(params: dict): dict
+        + upload_processes_file(): dict
+        + get_algorithms(): list
+        + run_simulation(algorithm: str, processes: list, params: dict): dict
+        + get_performance_comparison(processes: list): dict
+    }
 }
 
-' Define Process class
-class Process {
-    - int pid
-    - int arrival_time
-    - int burst_time
-    - int priority
+package "Frontend (Vue.js)" {
+    class App {
+        - currentView: string
+    }
+
+    class ProcessInput {
+        - processCount: number
+        - burstTimeRange: [number, number]
+        - arrivalTimeRange: [number, number]
+        - priorityRange: [number, number]
+        - generatedProcesses: Array
+        - fileUpload: File
+        + generateRandomProcesses(): void
+        + uploadProcessFile(): void
+        + saveProcessesToFile(): void
+    }
+
+    class AlgorithmSelector {
+        - availableAlgorithms: Array
+        - selectedAlgorithm: string
+        - algorithmParams: Object
+        + selectAlgorithm(algorithm: string): void
+        + updateParams(params: Object): void
+    }
+
+    class SimulationVisualizer {
+        - ganttChart: Array
+        - processTimeline: Array
+        - currentTime: number
+        + renderGanttChart(): void
+        + animateExecution(): void
+        + pauseAnimation(): void
+        + resetAnimation(): void
+    }
+
+    class PerformanceMetrics {
+        - metrics: Object
+        - comparisonData: Array
+        + displayMetrics(): void
+        + generateComparison(): void
+        + exportResults(): void
+    }
+
+    class APIService {
+        + fetchAlgorithms(): Promise
+        + generateProcesses(params): Promise
+        + uploadProcessesFile(file): Promise
+        + runSimulation(algorithm, processes, params): Promise
+        + getPerformanceComparison(processes): Promise
+    }
 }
 
+' Define relationships
+Scheduler <|-- FCFSScheduler
+Scheduler <|-- SJFScheduler
+Scheduler <|-- PriorityScheduler
+Scheduler <|-- RoundRobinScheduler
+Scheduler <|-- PriorityRRScheduler
 
-' Process_Table manages multiple processes
-class Process_Table {
-    + add_process()
-    + remove_process()
-    + get_process()
-    + get_all()
-}
+SimulationController --> Scheduler
+SimulationController --> ProcessGenerator
+SimulationController *-- Process
+APIEndpoints --> SimulationController
 
-' Abstract interface for scheduling algorithms
-interface IAlgorithm {
-    + execute(Process_Table table)
-}
-
-' Concrete implementations of algorithms
-class FCFServed_Algorithm
-class SJFirst_Algorithm
-class RRobin_Algorithm
-class Priority_Algorithm
-class PRRobin_Algorithm
-
-' The main Scheduler that coordinates everything
-class Scheduler {
-    + run()
-}
-
-Process --> State 
-' Inheritance arrows (algorithm implementations)
-FCFServed_Algorithm ..|> IAlgorithm
-RRobin_Algorithm ..|> IAlgorithm
-SJFirst_Algorithm ..|> IAlgorithm
-Priority_Algorithm ..|> IAlgorithm
-PRRobin_Algorithm ..|> IAlgorithm
-
-' Scheduler depends on an algorithm and a process table
-Scheduler --> IAlgorithm : uses >
-Scheduler --> Process_Table : owns >
-
-' Association: Process_Table contains multiple Processes
-Process_Table "1" --> "*" Process : manages >
+App *-- ProcessInput
+App *-- AlgorithmSelector
+App *-- SimulationVisualizer
+App *-- PerformanceMetrics
+ProcessInput --> APIService
+AlgorithmSelector --> APIService
+SimulationVisualizer --> APIService
+PerformanceMetrics --> APIService
 
 @enduml
