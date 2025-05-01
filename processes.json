@@ -1,0 +1,122 @@
+[
+  {
+    "arrival_time": 0,
+    "burst_time": 9,
+    "completion_time": null,
+    "priority": 3,
+    "process_id": 1,
+    "remaining_time": 9,
+    "response_time": null,
+    "start_time": null,
+    "turnaround_time": 0,
+    "waiting_time": 0
+  },
+  {
+    "arrival_time": 0,
+    "burst_time": 9,
+    "completion_time": null,
+    "priority": 5,
+    "process_id": 2,
+    "remaining_time": 9,
+    "response_time": null,
+    "start_time": null,
+    "turnaround_time": 0,
+    "waiting_time": 0
+  },
+  {
+    "arrival_time": 2,
+    "burst_time": 5,
+    "completion_time": null,
+    "priority": 3,
+    "process_id": 3,
+    "remaining_time": 5,
+    "response_time": null,
+    "start_time": null,
+    "turnaround_time": 0,
+    "waiting_time": 0
+  },
+  {
+    "arrival_time": 3,
+    "burst_time": 1,
+    "completion_time": null,
+    "priority": 4,
+    "process_id": 4,
+    "remaining_time": 1,
+    "response_time": null,
+    "start_time": null,
+    "turnaround_time": 0,
+    "waiting_time": 0
+  },
+  {
+    "arrival_time": 5,
+    "burst_time": 2,
+    "completion_time": null,
+    "priority": 1,
+    "process_id": 5,
+    "remaining_time": 2,
+    "response_time": null,
+    "start_time": null,
+    "turnaround_time": 0,
+    "waiting_time": 0
+  },
+  {
+    "arrival_time": 5,
+    "burst_time": 5,
+    "completion_time": null,
+    "priority": 5,
+    "process_id": 6,
+    "remaining_time": 5,
+    "response_time": null,
+    "start_time": null,
+    "turnaround_time": 0,
+    "waiting_time": 0
+  },
+  {
+    "arrival_time": 6,
+    "burst_time": 5,
+    "completion_time": null,
+    "priority": 2,
+    "process_id": 7,
+    "remaining_time": 5,
+    "response_time": null,
+    "start_time": null,
+    "turnaround_time": 0,
+    "waiting_time": 0
+  },
+  {
+    "arrival_time": 9,
+    "burst_time": 4,
+    "completion_time": null,
+    "priority": 3,
+    "process_id": 8,
+    "remaining_time": 4,
+    "response_time": null,
+    "start_time": null,
+    "turnaround_time": 0,
+    "waiting_time": 0
+  },
+  {
+    "arrival_time": 9,
+    "burst_time": 1,
+    "completion_time": null,
+    "priority": 5,
+    "process_id": 9,
+    "remaining_time": 1,
+    "response_time": null,
+    "start_time": null,
+    "turnaround_time": 0,
+    "waiting_time": 0
+  },
+  {
+    "arrival_time": 9,
+    "burst_time": 10,
+    "completion_time": null,
+    "priority": 2,
+    "process_id": 10,
+    "remaining_time": 10,
+    "response_time": null,
+    "start_time": null,
+    "turnaround_time": 0,
+    "waiting_time": 0
+  }
+]
