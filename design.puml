@@ -1,170 +1,220 @@
-@startuml CPU Scheduler Simulation
+@startuml CPU Scheduling Simulation Architecture
 
-' Define the styling
-skinparam classFontSize 14
-skinparam classAttributeFontSize 12
-skinparam classBackgroundColor LightBlue
-skinparam classBorderColor DarkBlue
-skinparam arrowColor DarkBlue
+' Style definitions
+skinparam classAttributeIconSize 0
+skinparam monochrome false
+skinparam shadowing false
+skinparam classFontStyle bold
+skinparam packageStyle rectangle
+skinparam linetype ortho
 
-package "Backend (Python)" {
-    ' Core classes
-    class Process {
-        - process_id: int
-        - arrival_time: int
-        - burst_time: int
-        - priority: int
-        - remaining_time: int
-        - start_time: int
-        - completion_time: int
-        - waiting_time: int
-        - turnaround_time: int
-        - response_time: int
-        + calculate_waiting_time(): void
-        + calculate_turnaround_time(): void
-        + calculate_response_time(): void
-    }
+' Title
+title CPU Scheduling Algorithms Simulation - Architecture Design
 
-    class ProcessGenerator {
-        + generate_random_processes(count: int, burst_range: tuple, arrival_range: tuple, priority_range: tuple): list<Process>
-        + load_processes_from_file(filename: str): list<Process>
-        + save_processes_to_file(processes: list<Process>, filename: str): void
-    }
+' Backend Package
+package "Backend" {
+  ' Process Classes
+  class Process {
+    - pid: int
+    - arrival_time: int
+    - burst_time: int
+    - priority: int
+    - remaining_time: int
+    - start_time: int
+    - completion_time: int
+    - waiting_time: int
+    - turnaround_time: int
+    - response_time: int
+    + __init__(pid, arrival, burst, priority)
+    + calculate_metrics(): void
+    + set_completion_time(time): void
+    + set_start_time(time): void
+    + get_waiting_time(): int
+    + get_turnaround_time(): int
+    + get_response_time(): int
+    + get_remaining_time(): int
+    + decrease_remaining_time(time): void
+  }
+  
+  class ProcessGenerator {
+    + generate_random_processes(count, arrival_range, burst_range, priority_range): List<Process>
+    + load_processes_from_file(file_path): List<Process>
+    + validate_processes(processes): boolean
+  }
 
-    abstract class Scheduler {
-        # processes: list<Process>
-        # current_time: int
-        # completion_order: list<Process>
-        # gantt_chart: list<dict>
-        + set_processes(processes: list<Process>): void
-        + {abstract} schedule(): void
-        + get_average_waiting_time(): float
-        + get_average_turnaround_time(): float
-        + get_average_response_time(): float
-        + get_cpu_utilization(): float
-        + get_gantt_chart(): list<dict>
-        + get_completion_order(): list<Process>
-        # update_gantt_chart(process: Process, start: int, end: int): void
-    }
+  ' Scheduler Classes
+  abstract class Scheduler {
+    # processes: List<Process>
+    # current_time: int
+    # gantt_chart: List<Tuple>
+    # execution_history: List<Dict>
+    + __init__(processes)
+    + {abstract} run(): void
+    + get_performance_metrics(): Dict
+    + get_gantt_chart(): List<Tuple>
+    + get_execution_history(): List<Dict>
+    # record_state(state): void
+    # calculate_metrics(): Dict
+  }
 
-    ' Concrete Scheduler implementations
-    class FCFSScheduler {
-        + schedule(): void
-    }
+  class FCFSScheduler {
+    + run(): void
+    - sort_by_arrival_time(): void
+  }
 
-    class SJFScheduler {
-        + schedule(): void
-    }
+  class SJFScheduler {
+    + run(): void
+    - sort_by_burst_time(): void
+    - find_shortest_job(ready_queue): Process
+  }
 
-    class PriorityScheduler {
-        + schedule(): void
-    }
+  class PriorityScheduler {
+    + run(): void
+    - sort_by_priority(): void
+    - find_highest_priority(ready_queue): Process
+  }
 
-    class RoundRobinScheduler {
-        - time_quantum: int
-        + set_time_quantum(quantum: int): void
-        + schedule(): void
-    }
-    
-    class PriorityRRScheduler {
-        - time_quantum: int
-        + set_time_quantum(quantum: int): void
-        + schedule(): void
-    }
+  class RoundRobinScheduler {
+    - time_quantum: int
+    + __init__(processes, time_quantum)
+    + run(): void
+    - handle_context_switch(ready_queue): void
+  }
 
-    ' Simulation controller
-    class SimulationController {
-        - scheduler: Scheduler
-        - processes: list<Process>
-        - process_generator: ProcessGenerator
-        + load_processes(source: str, params: dict): void
-        + set_scheduler(algorithm: str, params: dict): void
-        + run_simulation(): dict
-        + get_performance_metrics(): dict
-        + get_visualization_data(): dict
-    }
+  class PriorityRRScheduler {
+    - time_quantum: int
+    - priority_queues: Dict<int, List<Process>>
+    + __init__(processes, time_quantum)
+    + run(): void
+    - initialize_priority_queues(): void
+    - process_priority_level(priority, queue): void
+  }
+  
+  class SimulationController {
+    - scheduler_factory: Dict<str, Class>
+    + run_simulation(algorithm, processes, params): Dict
+    + compare_algorithms(processes, algorithms, params): Dict
+    + get_step_by_step_execution(algorithm, processes, params): List<Dict>
+    - create_scheduler(algorithm, processes, params): Scheduler
+  }
 
-    ' API interface
-    class APIEndpoints {
-        + generate_processes(params: dict): dict
-        + upload_processes_file(): dict
-        + get_algorithms(): list
-        + run_simulation(algorithm: str, processes: list, params: dict): dict
-        + get_performance_comparison(processes: list): dict
-    }
+  ' Relationships
+  Scheduler <|-- FCFSScheduler
+  Scheduler <|-- SJFScheduler
+  Scheduler <|-- PriorityScheduler
+  Scheduler <|-- RoundRobinScheduler
+  Scheduler <|-- PriorityRRScheduler
+  
+  Scheduler "1" o-- "many" Process : contains >
+  SimulationController --> Scheduler : creates >
+  SimulationController --> ProcessGenerator : uses >
 }
 
-package "Frontend (Vue.js)" {
-    class App {
-        - currentView: string
-    }
-
-    class ProcessInput {
-        - processCount: number
-        - burstTimeRange: [number, number]
-        - arrivalTimeRange: [number, number]
-        - priorityRange: [number, number]
-        - generatedProcesses: Array
-        - fileUpload: File
-        + generateRandomProcesses(): void
-        + uploadProcessFile(): void
-        + saveProcessesToFile(): void
-    }
-
-    class AlgorithmSelector {
-        - availableAlgorithms: Array
-        - selectedAlgorithm: string
-        - algorithmParams: Object
-        + selectAlgorithm(algorithm: string): void
-        + updateParams(params: Object): void
-    }
-
-    class SimulationVisualizer {
-        - ganttChart: Array
-        - processTimeline: Array
-        - currentTime: number
-        + renderGanttChart(): void
-        + animateExecution(): void
-        + pauseAnimation(): void
-        + resetAnimation(): void
-    }
-
-    class PerformanceMetrics {
-        - metrics: Object
-        - comparisonData: Array
-        + displayMetrics(): void
-        + generateComparison(): void
-        + exportResults(): void
-    }
-
-    class APIService {
-        + fetchAlgorithms(): Promise
-        + generateProcesses(params): Promise
-        + uploadProcessesFile(file): Promise
-        + runSimulation(algorithm, processes, params): Promise
-        + getPerformanceComparison(processes): Promise
-    }
+' Frontend Package
+package "Frontend" {
+  ' Vue Components
+  class App {
+    - components: Dict
+    - data(): Object
+    - methods: Object
+  }
+  
+  class AlgorithmSelector {
+    - algorithms: Array
+    - selectedAlgorithm: String
+    + data(): Object
+    + methods: {selectAlgorithm}
+    + emits: ['algorithm-selected']
+  }
+  
+  class GanttChart {
+    - ganttData: Array
+    - width: Number
+    - height: Number
+    + props: ['data']
+    + mounted(): void
+    + methods: {renderChart}
+  }
+  
+  class ProcessTable {
+    - processes: Array
+    - columns: Array
+    + props: ['processes']
+    + methods: {addProcess, editProcess, removeProcess}
+    + emits: ['process-updated']
+  }
+  
+  class PerformanceMetrics {
+    - metrics: Object
+    + props: ['metrics']
+    + computed: {formattedMetrics}
+  }
+  
+  class InteractiveVisualizer {
+    - executionHistory: Array
+    - currentStep: Number
+    - isPlaying: Boolean
+    + props: ['history']
+    + methods: {nextStep, prevStep, play, pause}
+  }
+  
+  ' Vue Views
+  class HomeView {
+    - components: {HelloWorld}
+  }
+  
+  class ProcessesView {
+    - processes: Array
+    - components: {ProcessTable, ProcessGenerator}
+    + methods: {saveProcesses, generateRandom, loadFromFile}
+  }
+  
+  class VisualizationView {
+    - algorithm: String
+    - processes: Array
+    - ganttChart: Array
+    - metrics: Object
+    - components: {AlgorithmSelector, GanttChart, PerformanceMetrics}
+    + methods: {runSimulation, updateAlgorithm}
+  }
+  
+  class ComparisonView {
+    - algorithms: Array
+    - processes: Array
+    - results: Object
+    - components: {PerformanceMetrics, GanttChart}
+    + methods: {compareAlgorithms, exportResults}
+  }
+  
+  ' API Service
+  class ApiService {
+    + runSimulation(algorithm, processes, params): Promise
+    + compareAlgorithms(processes, algorithms, params): Promise
+    + getStepByStepExecution(algorithm, processes, params): Promise
+  }
+  
+  ' Relationships
+  App --> HomeView : routes to >
+  App --> ProcessesView : routes to >
+  App --> VisualizationView : routes to >
+  App --> ComparisonView : routes to >
+  
+  VisualizationView --> AlgorithmSelector : contains >
+  VisualizationView --> GanttChart : contains >
+  VisualizationView --> PerformanceMetrics : contains >
+  
+  ProcessesView --> ProcessTable : contains >
+  
+  ComparisonView --> PerformanceMetrics : contains >
+  ComparisonView --> GanttChart : contains >
+  
+  ApiService --> App : used by >
+  VisualizationView --> ApiService : uses >
+  ComparisonView --> ApiService : uses >
+  ProcessesView --> ApiService : uses >
 }
 
-' Define relationships
-Scheduler <|-- FCFSScheduler
-Scheduler <|-- SJFScheduler
-Scheduler <|-- PriorityScheduler
-Scheduler <|-- RoundRobinScheduler
-Scheduler <|-- PriorityRRScheduler
-
-SimulationController --> Scheduler
-SimulationController --> ProcessGenerator
-SimulationController *-- Process
-APIEndpoints --> SimulationController
-
-App *-- ProcessInput
-App *-- AlgorithmSelector
-App *-- SimulationVisualizer
-App *-- PerformanceMetrics
-ProcessInput --> APIService
-AlgorithmSelector --> APIService
-SimulationVisualizer --> APIService
-PerformanceMetrics --> APIService
+' Integration Between Frontend and Backend
+ApiService ..> SimulationController : HTTP Requests >
 
 @enduml
