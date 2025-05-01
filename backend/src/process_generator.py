@@ -64,11 +64,48 @@ class ProcessGenerator:
             if file_extension == 'csv':
                 with open(filename, 'r') as file:
                     reader = csv.DictReader(file)
-                    for i, row in enumerate(reader):
-                        process_id = int(row.get('process_id', i + 1))
-                        arrival_time = int(row.get('arrival_time', 0))
-                        burst_time = int(row.get('burst_time', 1))
-                        priority = int(row.get('priority', 0))
+                    
+                    # Map field names to standardized names
+                    field_mapping = {
+                        'process_id': ['process_id', 'pid', 'id', 'process id', 'process_number', 'process-id'],
+                        'arrival_time': ['arrival_time', 'arrival', 'arrival-time', 'at', 'arrival time', 'start'],
+                        'burst_time': ['burst_time', 'burst', 'burst-time', 'bt', 'burst time', 'cpu time', 'execution_time', 'execution time'],
+                        'priority': ['priority', 'prio', 'pri', 'priority_value', 'priority-value']
+                    }
+                    
+                    # Create a mapping for the actual CSV columns to our standardized names
+                    column_map = {}
+                    headers = reader.fieldnames
+                    
+                    for std_field, possible_names in field_mapping.items():
+                        for header in headers:
+                            clean_header = header.strip().lower()
+                            if clean_header in [name.lower() for name in possible_names]:
+                                column_map[header] = std_field
+                                break
+                    
+                    # Reset file pointer to read data with new mapping
+                    file.seek(0)
+                    # Skip header line
+                    next(file)
+                    
+                    for i, row in enumerate(csv.DictReader(file, fieldnames=headers)):
+                        # Extract values using the column mapping
+                        process_id = i + 1  # Default value
+                        arrival_time = 0    # Default value
+                        burst_time = 1      # Default value
+                        priority = 1        # Default value
+                        
+                        for header, value in row.items():
+                            if header in column_map:
+                                if column_map[header] == 'process_id' and value.strip():
+                                    process_id = int(value)
+                                elif column_map[header] == 'arrival_time' and value.strip():
+                                    arrival_time = int(value)
+                                elif column_map[header] == 'burst_time' and value.strip():
+                                    burst_time = int(value)
+                                elif column_map[header] == 'priority' and value.strip():
+                                    priority = int(value)
                         
                         processes.append(Process(process_id, arrival_time, burst_time, priority))
             

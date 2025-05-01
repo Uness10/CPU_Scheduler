@@ -312,7 +312,7 @@ export default {
       try {
         this.loading = true;
         this.error = null;
-        
+        console.log(this.processes);
         const response = await api.runInteractiveSimulation(
           this.algorithm,
           this.params,

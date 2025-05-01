@@ -38,72 +38,14 @@
             </div>
           </div>
 
-          <!-- Process Table -->
-          <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200">
-              <thead>
-                <tr>
-                  <th class="px-4 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
-                  <th class="px-4 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Arrival Time</th>
-                  <th class="px-4 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Burst Time</th>
-                  <th class="px-4 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Priority</th>
-                  <th class="px-4 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Color</th>
-                  <th class="px-4 py-3 bg-gray-50 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                </tr>
-              </thead>
-              <tbody class="bg-white divide-y divide-gray-200">
-                <tr v-if="processes.length === 0">
-                  <td colspan="6" class="px-4 py-8 text-center text-gray-500">
-                    No processes available. Add one or generate random processes.
-                  </td>
-                </tr>
-                <tr v-for="(process, index) in processes" :key="process.process_id" class="hover:bg-gray-50">
-                  <td class="px-4 py-3 whitespace-nowrap">
-                    <span class="font-medium">P{{ process.process_id }}</span>
-                  </td>
-                  <td class="px-4 py-3 whitespace-nowrap">
-                    <input 
-                      type="number" 
-                      v-model.number="process.arrival_time" 
-                      min="0" 
-                      class="input-field"
-                    />
-                  </td>
-                  <td class="px-4 py-3 whitespace-nowrap">
-                    <input 
-                      type="number" 
-                      v-model.number="process.burst_time" 
-                      min="1" 
-                      class="input-field"
-                    />
-                  </td>
-                  <td class="px-4 py-3 whitespace-nowrap">
-                    <input 
-                      type="number" 
-                      v-model.number="process.priority" 
-                      min="1" 
-                      max="10" 
-                      class="input-field"
-                    />
-                  </td>
-                  <td class="px-4 py-3 whitespace-nowrap">
-                    <div class="w-6 h-6 rounded" :style="{ backgroundColor: getProcessColor(process.process_id) }"></div>
-                  </td>
-                  <td class="px-4 py-3 whitespace-nowrap text-right">
-                    <button 
-                      @click="deleteProcess(index)" 
-                      class="text-red-600 hover:text-red-800 transition focus:outline-none"
-                      title="Delete process"
-                    >
-                      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                      </svg>
-                    </button>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
+          <!-- Use ProcessTable Component instead of hardcoded table -->
+          <process-table 
+            :processes="processes"
+            @update="updateProcesses"
+            @generate="generateRandomProcesses"
+            @add="addProcess"
+            @remove="deleteProcess"
+          />
           
           <div class="mt-6 flex justify-between items-center">
             <span class="text-sm text-gray-500">{{ processes.length }} Processes</span>
@@ -272,7 +214,7 @@
     <input
       type="file"
       ref="fileInput"
-      accept=".json"
+      accept=".json,.csv"
       style="display: none"
       @change="handleFileImport"
     />
@@ -282,9 +224,13 @@
 <script>
 import { ref } from 'vue';
 import api from '@/services/api';
+import ProcessTable from '@/components/ProcessTable.vue';
 
 export default {
   name: 'ProcessesView',
+  components: {
+    ProcessTable
+  },
   data() {
     return {
       processes: [],
@@ -301,20 +247,36 @@ export default {
     };
   },
   methods: {
+    // Updated to work with the ProcessTable component
     addNewProcess() {
-      const newId = this.processes.length > 0 
-        ? Math.max(...this.processes.map(p => p.process_id)) + 1 
-        : 1;
-        
-      this.processes.push({
-        process_id: newId,
+      this.addProcess({
+        process_id: this.getNextProcessId(),
         arrival_time: 0,
         burst_time: 5,
         priority: 1,
         remaining_time: 5  // Same as burst_time initially
       });
-      
-      // Save to localStorage
+    },
+    
+    addProcess(newProcess) {
+      // Make sure process has the remaining_time property
+      if (!newProcess.hasOwnProperty('remaining_time')) {
+        newProcess.remaining_time = newProcess.burst_time;
+      }
+      this.processes.push(newProcess);
+      this.saveProcesses();
+    },
+    
+    getNextProcessId() {
+      return this.processes.length > 0 
+        ? Math.max(...this.processes.map(p => p.process_id)) + 1 
+        : 1;
+    },
+    
+    updateProcesses(updatedProcesses) {
+      // This method will be called when the child component emits the 'update' event
+      // Not needed to do anything here since we're using the same array by reference
+      // But we do need to save the changes
       this.saveProcesses();
     },
     
@@ -378,16 +340,87 @@ export default {
       const reader = new FileReader();
       reader.onload = (e) => {
         try {
-          const importedProcesses = JSON.parse(e.target.result);
-          if (Array.isArray(importedProcesses)) {
-            this.processes = importedProcesses;
-            this.saveProcesses();
+          // Check file type based on extension
+          const fileExtension = file.name.split('.').pop().toLowerCase();
+          
+          if (fileExtension === 'json') {
+            // Process JSON file
+            const importedProcesses = JSON.parse(e.target.result);
+            if (Array.isArray(importedProcesses)) {
+              this.processes = importedProcesses;
+              this.saveProcesses();
+            } else {
+              alert('Invalid JSON format. Expected an array of processes.');
+            }
+          } else if (fileExtension === 'csv') {
+            // Process CSV file
+            const csvContent = e.target.result;
+            const rows = csvContent.split('\n');
+            
+            // Extract headers and trim whitespace
+            const headers = rows[0].split(',').map(header => header.trim().toLowerCase());
+            
+            // Define mappings for column names
+            const fieldMapping = {
+              process_id: ['process_id', 'pid', 'id', 'process id', 'process_number', 'process-id'],
+              arrival_time: ['arrival_time', 'arrival', 'arrival-time', 'at', 'arrival time', 'start'],
+              burst_time: ['burst_time', 'burst', 'burst-time', 'bt', 'burst time', 'cpu time', 'execution_time', 'execution time'],
+              priority: ['priority', 'prio', 'pri', 'priority_value', 'priority-value']
+            };
+            
+            // Create a mapping for the actual CSV columns to our standardized names
+            const columnMap = {};
+            for (const [stdField, possibleNames] of Object.entries(fieldMapping)) {
+              for (let i = 0; i < headers.length; i++) {
+                if (possibleNames.includes(headers[i])) {
+                  columnMap[i] = stdField;
+                  break;
+                }
+              }
+            }
+            
+            // Process data rows
+            const importedProcesses = [];
+            for (let i = 1; i < rows.length; i++) {
+              const row = rows[i].trim();
+              if (!row) continue; // Skip empty rows
+              
+              const values = row.split(',').map(value => value.trim());
+              if (values.length < 3) continue; // Skip invalid rows
+              
+              // Create process with default values
+              const process = {
+                process_id: i,
+                arrival_time: 0,
+                burst_time: 1,
+                priority: 1
+              };
+              
+              // Update values based on column mapping
+              for (let j = 0; j < values.length; j++) {
+                if (columnMap[j] && values[j]) {
+                  process[columnMap[j]] = parseInt(values[j]) || 0;
+                }
+              }
+              
+              // Add remaining_time property for consistency
+              process.remaining_time = process.burst_time;
+              importedProcesses.push(process);
+            }
+            
+            if (importedProcesses.length > 0) {
+              this.processes = importedProcesses;
+              this.saveProcesses();
+            } else {
+              alert('No valid processes found in the CSV file.');
+            }
           } else {
-            alert('Invalid process data format. Expected an array.');
+            alert('Unsupported file format. Please use CSV or JSON files.');
           }
         } catch (error) {
-          alert('Error parsing JSON file: ' + error.message);
+          alert('Error parsing file: ' + error.message);
         }
+        
         // Reset file input
         event.target.value = '';
       };
@@ -399,17 +432,51 @@ export default {
         alert('No processes to export.');
         return;
       }
+
+      // Show export format options
+      const exportFormat = confirm('Export as CSV? Click OK for CSV or Cancel for JSON');
       
-      const data = JSON.stringify(this.processes, null, 2);
-      const blob = new Blob([data], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = 'processes.json';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      if (exportFormat) {
+        // Export as CSV
+        const headers = ['process_id', 'arrival_time', 'burst_time', 'priority'];
+        
+        // Create CSV header row
+        let csvContent = headers.join(',') + '\n';
+        
+        // Add data rows
+        this.processes.forEach(process => {
+          const row = [
+            process.process_id,
+            process.arrival_time,
+            process.burst_time,
+            process.priority
+          ];
+          csvContent += row.join(',') + '\n';
+        });
+        
+        // Create and download the file
+        const blob = new Blob([csvContent], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'processes.csv';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      } else {
+        // Export as JSON (original functionality)
+        const data = JSON.stringify(this.processes, null, 2);
+        const blob = new Blob([data], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'processes.json';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
     },
     
     saveProcesses() {

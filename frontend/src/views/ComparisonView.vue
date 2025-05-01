@@ -3,54 +3,89 @@
     <h1 class="text-2xl font-bold mb-6">Algorithm Comparison</h1>
     
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      <!-- Left column for process management -->
-      <div class="lg:col-span-1 space-y-6">
+      <!-- Left column for controls -->
+      <div class="space-y-6">
         <div class="card">
-          <ProcessTable 
-            :processes="processes" 
-            @update="updateProcesses" 
-            @generate="generateRandomProcesses"
-          />
-        </div>
-
-        <div class="card">
-          <h3 class="text-lg font-medium mb-4">Round Robin Time Quantum</h3>
-          <div class="mb-4">
-            <label for="quantum" class="form-label">Time Quantum</label>
-            <input 
-              id="quantum"
-              type="number" 
-              v-model.number="timeQuantum" 
-              min="1"
-              class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
-            />
-          </div>
-        </div>
-
-        <div class="card">
-          <h3 class="text-lg font-medium mb-4">Actions</h3>
-          <div class="flex space-x-3">
-            <button 
-              @click="runComparison" 
-              class="btn btn-primary flex-1"
-              :disabled="!canRunComparison || loading"
-            >
-              Compare Algorithms
-            </button>
-            <button 
-              @click="resetComparison" 
-              class="btn btn-secondary flex-1"
-            >
-              Reset
-            </button>
+          <h3 class="text-lg font-medium mb-4">Comparison Controls</h3>
+          
+          <div v-if="processes.length === 0" class="mb-4 p-4 bg-yellow-50 border-l-4 border-yellow-400 text-yellow-700">
+            <p>No processes available. Add processes in the Processes tab first.</p>
+            <router-link to="/processes" class="btn btn-primary mt-3">
+              Go to Process Creation
+            </router-link>
           </div>
           
-          <div v-if="loading" class="mt-4 text-center text-gray-600">
-            Loading comparison data...
+          <div v-else>
+            <div class="mb-4">
+              <label class="form-label" for="timeQuantum">Time Quantum for RR algorithms</label>
+              <input
+                id="timeQuantum"
+                type="number"
+                v-model.number="timeQuantum"
+                min="1"
+                class="form-input"
+              />
+              <p class="text-xs text-gray-500 mt-1">Note: Quantum value must be greater than or equal to 1</p>
+            </div>
+            
+            <div class="mb-4">
+              <label class="form-label">Processes to Compare</label>
+              <div class="text-sm text-gray-700 bg-gray-50 p-2 rounded">
+                {{ processes.length }} processes loaded from your process list
+              </div>
+            </div>
+            
+            <div class="space-y-3">
+              <button 
+                @click="runComparison" 
+                :disabled="!canRunComparison" 
+                class="btn btn-primary w-full"
+                :class="{'opacity-50 cursor-not-allowed': !canRunComparison}"
+              >
+                <span v-if="loading">Comparing...</span>
+                <span v-else>Compare Algorithms</span>
+              </button>
+              
+              <button 
+                @click="resetComparisonResults" 
+                class="btn btn-outline w-full"
+                :disabled="comparisonResults.length === 0 || loading"
+                :class="{'opacity-50 cursor-not-allowed': comparisonResults.length === 0 || loading}"
+              >
+                Clear Results
+              </button>
+            </div>
           </div>
           
-          <div v-if="error" class="mt-4 p-3 bg-red-100 border border-red-200 text-red-700 rounded-md text-sm">
+          <div v-if="error" class="mt-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-md">
             {{ error }}
+          </div>
+        </div>
+        
+        <div class="card" v-if="processes.length > 0">
+          <h3 class="text-lg font-medium mb-4">Processes Preview</h3>
+          <div class="max-h-96 overflow-y-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+              <thead class="bg-gray-50">
+                <tr>
+                  <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                  <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Arrival</th>
+                  <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Burst</th>
+                  <th class="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Priority</th>
+                </tr>
+              </thead>
+              <tbody class="bg-white divide-y divide-gray-200">
+                <tr v-for="process in processes.slice(0, 10)" :key="process.process_id" class="hover:bg-gray-50">
+                  <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-900">{{ process.process_id }}</td>
+                  <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-500">{{ process.arrival_time }}</td>
+                  <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-500">{{ process.burst_time }}</td>
+                  <td class="px-3 py-2 whitespace-nowrap text-sm text-gray-500">{{ process.priority }}</td>
+                </tr>
+              </tbody>
+            </table>
+            <div v-if="processes.length > 10" class="text-sm text-gray-500 text-center mt-2">
+              + {{ processes.length - 10 }} more processes
+            </div>
           </div>
         </div>
       </div>
@@ -136,7 +171,6 @@
 <script>
 import { Bar } from 'vue-chartjs';
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend } from 'chart.js';
-import ProcessTable from '@/components/ProcessTable.vue';
 import api from '@/services/api';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
@@ -152,7 +186,6 @@ const CHART_COLORS = [
 export default {
   name: 'ComparisonView',
   components: {
-    ProcessTable,
     Bar
   },
   data() {
@@ -217,47 +250,74 @@ export default {
     }
   },
   methods: {
-    updateProcesses(processes) {
-      this.processes = processes;
-      // Reset comparison when processes change
-      this.resetComparisonResults();
-    },
-    async generateRandomProcesses() {
-      try {
-        this.loading = true;
-        this.error = null;
-        
-        const response = await api.generateProcesses();
-        this.processes = response.data;
-        
-        // Reset comparison when new processes are generated
-        this.resetComparisonResults();
-      } catch (error) {
-        this.error = `Error generating processes: ${error.response?.data?.error || error.message}`;
-        console.error('Error generating processes:', error);
-      } finally {
-        this.loading = false;
+    loadProcessesFromLocalStorage() {
+      const savedProcesses = localStorage.getItem('cpu_scheduler_processes');
+      if (savedProcesses) {
+        try {
+          this.processes = JSON.parse(savedProcesses);
+        } catch (e) {
+          console.error('Error loading saved processes:', e);
+          this.processes = []; 
+        }
+      } else {
+        this.processes = [];
       }
     },
+
     async runComparison() {
       try {
         this.loading = true;
         this.error = null;
         
-        const response = await api.compareAlgorithms(this.processes);
-        
-        // Process response results
-        this.comparisonResults = response.data.map(result => {
-          // Apply time quantum configuration to RR and PriorityRR results
-          if (result.algorithm.id === 'RR' || result.algorithm.id === 'PriorityRR') {
-            // Update the algorithm name to include the time quantum
-            result.algorithm.name += ` (TQ=${this.timeQuantum})`;
+        // Prepare algorithms with their parameters
+        const algorithms = [
+          { id: 'FCFS', name: 'First-Come, First-Served' },
+          { id: 'SJF', name: 'Shortest Job First' },
+          { id: 'Priority', name: 'Priority Scheduling' },
+          { 
+            id: 'RR', 
+            name: 'Round Robin',
+            params: { time_quantum: this.timeQuantum }
+          },
+          { 
+            id: 'PriorityRR', 
+            name: 'Priority Round Robin',
+            params: { time_quantum: this.timeQuantum }
           }
-          return result;
-        });
+        ];
         
-        // Sort results by average waiting time for better visualization
+        // Run each algorithm and collect results
+        this.comparisonResults = [];
+        
+        for (const algo of algorithms) {
+          try {
+            const params = algo.params || {};
+            // Fix the parameter order: (algorithm, params, processes) instead of (processes, algorithm, params)
+            const response = await api.runSimulation(algo.id, params, this.processes);
+            
+            // Access the performance metrics from the nested structure
+            const perfMetrics = response.data.performance_metrics || {};
+            
+            // Add the result with algorithm info
+            this.comparisonResults.push({
+              algorithm: {
+                id: algo.id,
+                name: algo.name + (params.time_quantum ? ` (TQ=${params.time_quantum})` : '')
+              },
+              avg_waiting_time: perfMetrics.average_waiting_time || 0,
+              avg_turnaround_time: perfMetrics.average_turnaround_time || 0,
+              cpu_utilization: perfMetrics.cpu_utilization || 0, // Already in percentage
+              throughput: perfMetrics.processes_completed / (perfMetrics.total_execution_time || 1) || 0
+            });
+          } catch (algoError) {
+            console.error(`Error running ${algo.name}:`, algoError);
+            // Continue with other algorithms if one fails
+          }
+        }
+        
+        // Sort by average waiting time (most efficient first)
         this.comparisonResults.sort((a, b) => a.avg_waiting_time - b.avg_waiting_time);
+        
       } catch (error) {
         this.error = `Error running comparison: ${error.response?.data?.error || error.message}`;
         console.error('Error running comparison:', error);
@@ -265,18 +325,19 @@ export default {
         this.loading = false;
       }
     },
+    
     resetComparison() {
       this.processes = [];
       this.resetComparisonResults();
     },
+    
     resetComparisonResults() {
       this.comparisonResults = [];
       this.error = null;
     }
   },
   mounted() {
-    // Generate random processes when component mounts
-    this.generateRandomProcesses();
+    this.loadProcessesFromLocalStorage();
   }
 }
 </script>

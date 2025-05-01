@@ -90,11 +90,11 @@ export default {
       required: true
     }
   },
-  emits: ['update', 'generate'],
+  emits: ['update', 'generate', 'add', 'remove'], // Add 'add' and 'remove'
   methods: {
     addProcess() {
       const maxId = this.processes.length > 0 
-        ? Math.max(...this.processes.map(p => p.process_id)) 
+        ? Math.max(...this.processes.map(p => parseInt(p.process_id) || 0)) // Ensure IDs are numbers
         : 0;
       
       const newProcess = {
@@ -104,12 +104,16 @@ export default {
         priority: 1
       };
       
-      this.processes.push(newProcess);
-      this.$emit('update', this.processes);
+      // Emit an event for the parent to handle adding
+      this.$emit('add', newProcess); 
+      // Do not push directly: this.processes.push(newProcess);
+      // Do not emit update here for add: this.$emit('update', this.processes);
     },
     removeProcess(index) {
-      this.processes.splice(index, 1);
-      this.$emit('update', this.processes);
+      // Emit an event for the parent to handle removal
+      this.$emit('remove', index);
+      // Do not splice directly: this.processes.splice(index, 1);
+      // Do not emit update here for remove: this.$emit('update', this.processes);
     }
   }
 }

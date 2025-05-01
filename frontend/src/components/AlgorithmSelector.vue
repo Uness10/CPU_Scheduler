@@ -30,6 +30,7 @@
         min="1"
         class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
       />
+      <p class="text-xs text-gray-500 mt-1">Note: Quantum value must be greater than or equal to 1</p>
     </div>
 
     <div class="mt-4 bg-gray-50 p-4 rounded-md">

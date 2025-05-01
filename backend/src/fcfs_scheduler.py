@@ -15,6 +15,7 @@ class FCFSScheduler(Scheduler):
         """Initialize the FCFS scheduler."""
         super().__init__()
         self.ready_queue_state = []
+        
     
     def schedule(self):
         """
@@ -22,7 +23,7 @@ class FCFSScheduler(Scheduler):
         """
         if not self.processes:
             return
-        
+        print(self.processes)
         # Reset simulation history before starting
         self.simulation_step = 0
         self.simulation_history = []
@@ -37,7 +38,7 @@ class FCFSScheduler(Scheduler):
         self._capture_queue_state(ready_queue)
         self.save_simulation_state()
         
-        while remaining_processes:
+        while remaining_processes or ready_queue :
             # Find the processes that have arrived by the current time
             newly_arrived = [p for p in remaining_processes if p.arrival_time <= self.current_time]
             
@@ -63,7 +64,9 @@ class FCFSScheduler(Scheduler):
                 continue
                 
             # Get the first arrived process (FCFS)
-            current_process = min(ready_queue, key=lambda p: p.arrival_time)
+            # In FCFS, we take the first process in the ready queue
+            # (ready queue already has processes ordered by arrival time)
+            current_process = ready_queue[0]
             ready_queue.remove(current_process)
             
             # Save state after selecting process

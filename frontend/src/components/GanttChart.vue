@@ -1,37 +1,39 @@
 <template>
   <div>
     <h3 class="text-lg font-medium mb-4">Gantt Chart</h3>
-    <div v-if="timeline.length > 0" class="gantt-container">
-      <div class="gantt-chart">
-        <div class="gantt-row flex">
-          <div 
-            v-for="(item, index) in timeline" 
-            :key="index" 
-            class="gantt-block" 
-            :class="{ 'gantt-block-current': isCurrentBlock(item) }"
-            :style="{
-              width: `${item.duration * 50}px`, 
-              backgroundColor: getProcessColor(item.process_id)
-            }"
-            @click="$emit('block-click', item)"
-          >
-            <div class="gantt-content">{{ item.process_id !== null ? `P${item.process_id}` : 'Idle' }}</div>
-          </div>
-        </div>
-        <div class="gantt-timeline flex">
-          <div 
-            v-for="(item, index) in timeline" 
-            :key="index" 
-            class="gantt-time" 
-            :style="{width: `${item.duration * 50}px`}"
-          >
-            <div class="gantt-time-marker">{{ item.start_time }}</div>
+    <div v-if="timeline.length > 0" class="scrollable-gantt-container">
+      <div class="scrollable-gantt-content">
+        <div class="gantt-chart">
+          <div class="gantt-row flex">
             <div 
-              v-if="index === timeline.length - 1" 
-              class="gantt-time-marker" 
-              style="position: absolute; right: 0;"
+              v-for="(item, index) in timeline" 
+              :key="index" 
+              class="gantt-block" 
+              :class="{ 'gantt-block-current': isCurrentBlock(item) }"
+              :style="{
+                width: `${item.duration * 50}px`, 
+                backgroundColor: getProcessColor(item.process_id)
+              }"
+              @click="$emit('block-click', item)"
             >
-              {{ item.start_time + item.duration }}
+              <div class="gantt-content">{{ item.process_id !== null ? `P${item.process_id}` : 'Idle' }}</div>
+            </div>
+          </div>
+          <div class="gantt-timeline flex">
+            <div 
+              v-for="(item, index) in timeline" 
+              :key="index" 
+              class="gantt-time" 
+              :style="{width: `${item.duration * 50}px`}"
+            >
+              <div class="gantt-time-marker">{{ item.start_time }}</div>
+              <div 
+                v-if="index === timeline.length - 1" 
+                class="gantt-time-marker" 
+                style="position: absolute; right: 0;"
+              >
+                {{ item.start_time + item.duration }}
+              </div>
             </div>
           </div>
         </div>
@@ -161,5 +163,25 @@ export default {
   transform: translateX(-50%);
   font-size: 0.75rem;
   color: #4a5568;
+}
+
+.scrollable-gantt-container {
+  overflow-x: auto;
+  white-space: nowrap;
+}
+
+.scrollable-gantt-content {
+  display: inline-block;
+  min-width: 100%; 
+}
+
+.scrollable-gantt-container {
+  overflow-x: auto;
+  white-space: nowrap;
+}
+
+.scrollable-gantt-content {
+  display: inline-block;
+  min-width: 100%; 
 }
 </style>
