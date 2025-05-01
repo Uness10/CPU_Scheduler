@@ -18,6 +18,9 @@ class Scheduler(ABC):
         self.current_time = 0
         self.completion_order = []
         self.gantt_chart = []
+        # Add tracking for simulation state
+        self.simulation_step = 0
+        self.simulation_history = []
     
     def set_processes(self, processes):
         """
@@ -155,3 +158,63 @@ class Scheduler(ABC):
             'total_execution_time': self.current_time,
             'processes_completed': len(self.completion_order)
         }
+    
+    def get_simulation_state(self):
+        """
+        Get the current state of the simulation for interactive visualization.
+        This provides all details needed for the frontend to render the current state.
+        
+        Returns:
+            dict: A dictionary containing the current simulation state
+        """
+        active_processes = []
+        waiting_processes = []
+        completed_processes = []
+        
+        for process in self.processes:
+            process_state = process.to_dict()
+            
+            # Add more detailed state information
+            process_state['state'] = 'completed' if process in self.completion_order else \
+                                    'running' if process.start_time is not None and process.remaining_time > 0 else \
+                                    'waiting' if process.arrival_time <= self.current_time else \
+                                    'not_arrived'
+            
+            # Organize processes by their state
+            if process in self.completion_order:
+                completed_processes.append(process_state)
+            elif process.arrival_time <= self.current_time:
+                waiting_processes.append(process_state)
+            else:
+                active_processes.append(process_state)
+        
+        return {
+            'current_time': self.current_time,
+            'active_processes': active_processes,
+            'waiting_processes': waiting_processes,
+            'completed_processes': completed_processes,
+            'gantt_chart': self.gantt_chart,
+            'step': self.simulation_step,
+            'metrics': {
+                'average_waiting_time': self.get_average_waiting_time(),
+                'average_turnaround_time': self.get_average_turnaround_time(),
+                'average_response_time': self.get_average_response_time(),
+                'cpu_utilization': self.get_cpu_utilization()
+            }
+        }
+        
+    def save_simulation_state(self):
+        """
+        Save the current simulation state to the history for step-by-step replay.
+        """
+        self.simulation_history.append(self.get_simulation_state())
+        self.simulation_step += 1
+        
+    def get_simulation_history(self):
+        """
+        Get the complete simulation history for interactive replay.
+        
+        Returns:
+            list: List of simulation states at each step
+        """
+        return self.simulation_history

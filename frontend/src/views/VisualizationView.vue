@@ -7,8 +7,8 @@
       <div class="lg:col-span-1 space-y-6">
         <div class="card">
           <ProcessTable 
-            :processes="processes" 
-            @update="updateProcesses" 
+            :processes="processes"
+            @update="updateProcesses"
             @generate="generateRandomProcesses"
           />
         </div>
@@ -18,23 +18,26 @@
         <div class="card">
           <h3 class="text-lg font-medium mb-4">Actions</h3>
           <div class="flex space-x-3">
-            <button 
-              @click="runSimulation" 
+            <button
+              @click="runSimulation"
               class="btn btn-primary flex-1"
               :disabled="!canRunSimulation || loading"
             >
-              <span v-if="loading">Running...</span>
-              <span v-else>Run Simulation</span>
+              Run Simulation
             </button>
-            <button 
-              @click="resetSimulation" 
+            <button
+              @click="resetSimulation"
               class="btn btn-secondary flex-1"
             >
               Reset
             </button>
           </div>
+
+          <div v-if="loading" class="mt-4 text-center text-gray-600">
+            Running simulation...
+          </div>
           
-          <div v-if="error" class="mt-4 p-3 bg-red-100 border border-red-200 text-red-700 rounded-md text-sm">
+          <div v-if="error" class="mt-4 p-3 bg-red-100 border border-red-200 text-red-700 rounded-md">
             {{ error }}
           </div>
         </div>
@@ -42,11 +45,47 @@
       
       <!-- Right column for visualization and results -->
       <div class="lg:col-span-2 space-y-6">
-        <div class="card">
-          <GanttChart :timeline="timeline" />
+        <!-- Visualization mode tabs -->
+        <div class="border-b border-gray-200">
+          <nav class="flex -mb-px">
+            <button 
+              @click="visualizationMode = 'basic'"
+              class="px-4 py-2 font-medium text-sm border-b-2 transition-colors duration-150 ease-in-out"
+              :class="visualizationMode === 'basic' 
+                ? 'border-blue-500 text-blue-600' 
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+            >
+              Basic Visualization
+            </button>
+            <button 
+              @click="visualizationMode = 'interactive'"
+              class="ml-8 px-4 py-2 font-medium text-sm border-b-2 transition-colors duration-150 ease-in-out"
+              :class="visualizationMode === 'interactive' 
+                ? 'border-blue-500 text-blue-600' 
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'"
+            >
+              Interactive Visualization
+            </button>
+          </nav>
         </div>
-        
-        <PerformanceMetrics :metrics="metrics" />
+
+        <!-- Basic visualization content -->
+        <div v-if="visualizationMode === 'basic'">
+          <div class="card">
+            <GanttChart :timeline="timeline" />
+          </div>
+          
+          <PerformanceMetrics :metrics="metrics" />
+        </div>
+
+        <!-- Interactive visualization content -->
+        <div v-if="visualizationMode === 'interactive'">
+          <InteractiveVisualizer 
+            :processes="processes" 
+            :algorithm="algorithm.algorithm"
+            :params="algorithm.params"
+          />
+        </div>
       </div>
     </div>
   </div>
@@ -57,6 +96,7 @@ import ProcessTable from '@/components/ProcessTable.vue';
 import AlgorithmSelector from '@/components/AlgorithmSelector.vue';
 import GanttChart from '@/components/GanttChart.vue';
 import PerformanceMetrics from '@/components/PerformanceMetrics.vue';
+import InteractiveVisualizer from '@/components/InteractiveVisualizer.vue';
 import api from '@/services/api';
 
 export default {
@@ -65,7 +105,8 @@ export default {
     ProcessTable,
     AlgorithmSelector,
     GanttChart,
-    PerformanceMetrics
+    PerformanceMetrics,
+    InteractiveVisualizer
   },
   data() {
     return {
@@ -77,7 +118,8 @@ export default {
       timeline: [],
       metrics: null,
       error: null,
-      loading: false
+      loading: false,
+      visualizationMode: 'basic'  // 'basic' or 'interactive'
     };
   },
   computed: {
@@ -131,63 +173,34 @@ export default {
         const visData = response.data.visualization_data || {};
         
         // Process the timeline data for the Gantt chart from the gantt_chart field
-        this.timeline = visData.gantt_chart?.map(item => ({
-          process_id: item.process_id,
-          start_time: item.start_time,
-          duration: item.end_time - item.start_time
-        })) || [];
+        this.timeline = visData.gantt_chart || [];
         
         // Generate process metrics if not explicitly provided in the API
-        // This creates a process_metrics array with completion time, turnaround time, and waiting time for each process
         const processMetrics = [];
-        if (this.processes && visData.gantt_chart) {
-          // Create a map to track the latest end time for each process (completion time)
-          const completionTimes = {};
-          
-          // Populate completion times
-          visData.gantt_chart.forEach(item => {
-            const pid = item.process_id;
-            const endTime = item.end_time;
-            
-            // Update completion time if this is the latest end time for the process
-            if (!completionTimes[pid] || endTime > completionTimes[pid]) {
-              completionTimes[pid] = endTime;
-            }
-          });
-          
-          // Create process metrics for each process
-          this.processes.forEach(process => {
-            const pid = process.process_id;
-            const arrivalTime = process.arrival_time;
-            const burstTime = process.burst_time;
-            const completionTime = completionTimes[pid] || 0;
-            
-            // Calculate metrics
-            const turnaroundTime = completionTime - arrivalTime;
-            const waitingTime = turnaroundTime - burstTime;
-            
+        for (const process of this.processes) {
+          // Find the matching completed process
+          const completedProcess = (visData.completion_order || []).find(p => p.process_id === process.process_id);
+          if (completedProcess) {
             processMetrics.push({
-              process_id: pid,
-              completion_time: completionTime,
-              turnaround_time: turnaroundTime,
-              waiting_time: waitingTime
+              process_id: process.process_id,
+              completion_time: completedProcess.completion_time,
+              turnaround_time: completedProcess.turnaround_time,
+              waiting_time: completedProcess.waiting_time
             });
-          });
+          }
         }
         
         // Set the metrics data using the correct fields from performance_metrics
         this.metrics = {
-          avg_turnaround_time: perfMetrics.average_turnaround_time || 0,
           avg_waiting_time: perfMetrics.average_waiting_time || 0,
+          avg_turnaround_time: perfMetrics.average_turnaround_time || 0,
+          avg_response_time: perfMetrics.average_response_time || 0,
           cpu_utilization: perfMetrics.cpu_utilization || 0,
-          throughput: perfMetrics.throughput || 0,
+          throughput: (this.processes.length / (visData.total_time || 1)) || 0,
           total_time: visData.total_time || 0,
-          // Use API-provided process_metrics if available, otherwise use our calculated metrics
-          process_metrics: perfMetrics.process_metrics || processMetrics
+          process_metrics: processMetrics
         };
         
-        console.log('Processed timeline:', this.timeline);
-        console.log('Processed metrics:', this.metrics);
       } catch (error) {
         this.error = `Error running simulation: ${error.response?.data?.error || error.message}`;
         console.error('Error running simulation:', error);

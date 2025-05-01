@@ -8,12 +8,14 @@
             v-for="(item, index) in timeline" 
             :key="index" 
             class="gantt-block" 
+            :class="{ 'gantt-block-current': isCurrentBlock(item) }"
             :style="{
               width: `${item.duration * 50}px`, 
               backgroundColor: getProcessColor(item.process_id)
             }"
+            @click="$emit('block-click', item)"
           >
-            <div class="gantt-content">P{{ item.process_id }}</div>
+            <div class="gantt-content">{{ item.process_id !== null ? `P${item.process_id}` : 'Idle' }}</div>
           </div>
         </div>
         <div class="gantt-timeline flex">
@@ -37,7 +39,7 @@
 
       <div class="process-legend mt-8">
         <h4 class="text-md font-medium mb-2">Legend</h4>
-        <div class="grid grid-cols-4 gap-4">
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
           <div 
             v-for="processId in uniqueProcessIds" 
             :key="processId" 
@@ -47,7 +49,7 @@
               class="w-4 h-4 rounded mr-2" 
               :style="{backgroundColor: getProcessColor(processId)}"
             ></div>
-            <span>Process {{ processId }}</span>
+            <span>{{ processId !== null ? `Process ${processId}` : 'Idle' }}</span>
           </div>
         </div>
       </div>
@@ -65,6 +67,14 @@ export default {
     timeline: {
       type: Array,
       required: true
+    },
+    currentTime: {
+      type: Number,
+      default: null
+    },
+    interactive: {
+      type: Boolean,
+      default: false
     }
   },
   computed: {
@@ -74,6 +84,11 @@ export default {
   },
   methods: {
     getProcessColor(processId) {
+      // Handle idle time differently
+      if (processId === null) {
+        return '#CBD5E0'; // gray-400 for idle time
+      }
+      
       // Generate a deterministic color based on process ID
       const colors = [
         '#4299E1', // blue-500
@@ -89,6 +104,15 @@ export default {
       ];
       
       return colors[processId % colors.length];
+    },
+    
+    isCurrentBlock(block) {
+      if (!this.interactive || this.currentTime === null) {
+        return false;
+      }
+      
+      // Check if current time falls within this block
+      return this.currentTime >= block.start_time && this.currentTime < block.end_time;
     }
   }
 }
@@ -108,6 +132,20 @@ export default {
   justify-content: center;
   color: white;
   font-weight: 500;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  cursor: pointer;
+}
+
+.gantt-block:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  z-index: 10;
+}
+
+.gantt-block-current {
+  box-shadow: 0 0 0 2px #3182CE, 0 4px 6px rgba(0, 0, 0, 0.1);
+  z-index: 20;
+  transform: translateY(-2px);
 }
 
 .gantt-time {

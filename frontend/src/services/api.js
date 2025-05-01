@@ -68,6 +68,21 @@ export default {
   },
 
   /**
+   * Run an interactive simulation for step-by-step visualization
+   * @param {string} algorithm - The algorithm ID to use
+   * @param {Object} params - Algorithm-specific parameters (e.g., time_quantum)
+   * @param {Array} processes - Array of process objects
+   * @returns {Promise} Promise object with detailed simulation history for interactive visualization
+   */
+  runInteractiveSimulation(algorithm, params, processes) {
+    return axios.post(`${API_BASE_URL}/interactive-simulation`, {
+      algorithm,
+      params,
+      processes
+    });
+  },
+
+  /**
    * Compare performance of all scheduling algorithms with the same processes
    * @param {Array} processes - Array of process objects
    * @returns {Promise} Promise object with comparison results
