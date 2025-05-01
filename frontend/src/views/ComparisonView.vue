@@ -175,13 +175,13 @@ import api from '@/services/api';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
-const CHART_COLORS = [
-  'rgba(54, 162, 235, 0.7)',   // blue
-  'rgba(75, 192, 192, 0.7)',   // green
-  'rgba(255, 159, 64, 0.7)',   // orange
-  'rgba(153, 102, 255, 0.7)',  // purple
-  'rgba(255, 99, 132, 0.7)'    // red
-];
+const ALGORITHM_COLORS = {
+  'FCFS': 'rgba(54, 162, 235, 0.7)',     // Blue
+  'SJF': 'rgba(75, 192, 192, 0.7)',      // Green
+  'Priority': 'rgba(255, 159, 64, 0.7)', // Orange
+  'RR': 'rgba(153, 102, 255, 0.7)',      // Purple
+  'PriorityRR': 'rgba(255, 99, 132, 0.7)' // Red
+};
 
 export default {
   name: 'ComparisonView',
@@ -221,7 +221,7 @@ export default {
         datasets: [{
           label: 'Average Waiting Time',
           data: this.comparisonResults.map(result => result.avg_waiting_time),
-          backgroundColor: CHART_COLORS,
+          backgroundColor: this.comparisonResults.map(result => ALGORITHM_COLORS[result.algorithm.id]),
           borderWidth: 1
         }]
       };
@@ -232,7 +232,7 @@ export default {
         datasets: [{
           label: 'Average Turnaround Time',
           data: this.comparisonResults.map(result => result.avg_turnaround_time),
-          backgroundColor: CHART_COLORS,
+          backgroundColor: this.comparisonResults.map(result => ALGORITHM_COLORS[result.algorithm.id]),
           borderWidth: 1
         }]
       };
@@ -243,7 +243,7 @@ export default {
         datasets: [{
           label: 'CPU Utilization (%)',
           data: this.comparisonResults.map(result => result.cpu_utilization),
-          backgroundColor: CHART_COLORS,
+          backgroundColor: this.comparisonResults.map(result => ALGORITHM_COLORS[result.algorithm.id]),
           borderWidth: 1
         }]
       };

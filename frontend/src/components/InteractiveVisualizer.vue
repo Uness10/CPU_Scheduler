@@ -192,7 +192,7 @@
         <!-- Performance metrics for current step -->
         <div class="card">
           <h4 class="text-md font-medium mb-3">Current Metrics</h4>
-          <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
             <div class="bg-gray-50 p-3 rounded-lg">
               <h5 class="text-sm font-medium text-gray-700">Avg Waiting Time</h5>
               <p class="text-xl font-bold text-blue-600">{{ currentState?.metrics?.average_waiting_time?.toFixed(2) || '0.00' }}</p>
@@ -200,10 +200,6 @@
             <div class="bg-gray-50 p-3 rounded-lg">
               <h5 class="text-sm font-medium text-gray-700">Avg Turnaround Time</h5>
               <p class="text-xl font-bold text-blue-600">{{ currentState?.metrics?.average_turnaround_time?.toFixed(2) || '0.00' }}</p>
-            </div>
-            <div class="bg-gray-50 p-3 rounded-lg">
-              <h5 class="text-sm font-medium text-gray-700">Avg Response Time</h5>
-              <p class="text-xl font-bold text-blue-600">{{ currentState?.metrics?.average_response_time?.toFixed(2) || '0.00' }}</p>
             </div>
             <div class="bg-gray-50 p-3 rounded-lg">
               <h5 class="text-sm font-medium text-gray-700">CPU Utilization</h5>

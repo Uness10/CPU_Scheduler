@@ -76,10 +76,7 @@
               <h4 class="font-medium text-gray-800">Turnaround Time</h4>
               <p class="text-sm text-gray-600">The time taken to complete a process (waiting time + burst time).</p>
             </div>
-            <div>
-              <h4 class="font-medium text-gray-800">Response Time</h4>
-              <p class="text-sm text-gray-600">The time between submission and first response.</p>
-            </div>
+
             <div>
               <h4 class="font-medium text-gray-800">CPU Utilization</h4>
               <p class="text-sm text-gray-600">The percentage of time the CPU is actively executing processes.</p>

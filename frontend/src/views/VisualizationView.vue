@@ -208,7 +208,6 @@ export default {
         this.metrics = {
           avg_waiting_time: perfMetrics.average_waiting_time || 0,
           avg_turnaround_time: perfMetrics.average_turnaround_time || 0,
-          avg_response_time: perfMetrics.average_response_time || 0,
           cpu_utilization: perfMetrics.cpu_utilization || 0,
           throughput: (this.processes.length / (visData.total_time || 1)) || 0,
           total_time: visData.total_time || 0,
