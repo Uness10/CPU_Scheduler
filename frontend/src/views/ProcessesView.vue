@@ -342,17 +342,7 @@ export default {
         try {
           // Check file type based on extension
           const fileExtension = file.name.split('.').pop().toLowerCase();
-          
-          if (fileExtension === 'json') {
-            // Process JSON file
-            const importedProcesses = JSON.parse(e.target.result);
-            if (Array.isArray(importedProcesses)) {
-              this.processes = importedProcesses;
-              this.saveProcesses();
-            } else {
-              alert('Invalid JSON format. Expected an array of processes.');
-            }
-          } else if (fileExtension === 'csv') {
+        if (fileExtension === 'csv') {
             // Process CSV file
             const csvContent = e.target.result;
             const rows = csvContent.split('\n');
@@ -415,7 +405,7 @@ export default {
               alert('No valid processes found in the CSV file.');
             }
           } else {
-            alert('Unsupported file format. Please use CSV or JSON files.');
+            alert('Unsupported file format. Please use .csv files.');
           }
         } catch (error) {
           alert('Error parsing file: ' + error.message);
@@ -433,10 +423,7 @@ export default {
         return;
       }
 
-      // Show export format options
-      const exportFormat = confirm('Export as CSV? Click OK for CSV or Cancel for JSON');
-      
-      if (exportFormat) {
+
         // Export as CSV
         const headers = ['process_id', 'arrival_time', 'burst_time', 'priority'];
         
@@ -464,19 +451,7 @@ export default {
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
-      } else {
-        // Export as JSON (original functionality)
-        const data = JSON.stringify(this.processes, null, 2);
-        const blob = new Blob([data], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = 'processes.json';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-      }
+      
     },
     
     saveProcesses() {
@@ -566,3 +541,4 @@ export default {
   @apply block w-full text-sm border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500;
 }
 </style>
+``` 
