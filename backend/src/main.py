@@ -3,15 +3,14 @@ API Endpoints for the CPU Scheduler Simulation.
 Provides REST API endpoints for frontend integration.
 """
 import os
-import os
 import json
 import tempfile
-from process_generator import ProcessGenerator
-from process import Process
+from models.process import Process
+from utils.process_generator import ProcessGenerator
+from controllers.simulation_controller import SimulationController
 
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-from simulation_controller import SimulationController
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
@@ -77,8 +76,6 @@ def run_simulation():
         
         # If processes are provided, use them
         if processes_data:
-            from process import Process
-            
             processes = []
             for p_data in processes_data:
                 process = Process(
@@ -112,8 +109,6 @@ def get_performance_comparison():
         if not processes_data:
             return jsonify({'error': 'No processes provided'}), 400
             
-        from process import Process
-        
         # Convert JSON data to Process objects
         processes = []
         for p_data in processes_data:
@@ -171,8 +166,6 @@ def get_interactive_simulation():
         
         # If processes are provided, use them
         if processes_data:
-            from process import Process
-            
             processes = []
             for p_data in processes_data:
                 process = Process(

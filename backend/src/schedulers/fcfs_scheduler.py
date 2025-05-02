@@ -2,7 +2,7 @@
 First-Come, First-Served (FCFS) Scheduler Implementation.
 """
 
-from scheduler import Scheduler
+from .scheduler import Scheduler
 
 class FCFSScheduler(Scheduler):
     """

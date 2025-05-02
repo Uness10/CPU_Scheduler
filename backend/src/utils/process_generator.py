@@ -6,7 +6,7 @@ Provides functionality to generate and manage process data.
 import random
 import csv
 import json
-from process import Process
+from models.process import Process
 
 class ProcessGenerator:
     """

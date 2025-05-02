@@ -3,12 +3,12 @@ Simulation Controller for CPU Scheduler Simulation.
 Centralizes control over the scheduling simulation process.
 """
 
-from process_generator import ProcessGenerator
-from fcfs_scheduler import FCFSScheduler
-from sjf_scheduler import SJFScheduler
-from priority_scheduler import PriorityScheduler
-from round_robin_scheduler import RoundRobinScheduler
-from priority_rr_scheduler import PriorityRRScheduler
+from utils.process_generator import ProcessGenerator
+from schedulers.fcfs_scheduler import FCFSScheduler
+from schedulers.sjf_scheduler import SJFScheduler
+from schedulers.priority_scheduler import PriorityScheduler
+from schedulers.round_robin_scheduler import RoundRobinScheduler
+from schedulers.priority_rr_scheduler import PriorityRRScheduler
 
 class SimulationController:
     """

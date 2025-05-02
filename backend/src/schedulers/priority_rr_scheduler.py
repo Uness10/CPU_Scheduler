@@ -3,7 +3,7 @@ Priority Round Robin Scheduler Implementation.
 A hybrid algorithm that combines priority scheduling with Round Robin.
 """
 
-from scheduler import Scheduler
+from .scheduler import Scheduler
 from collections import deque
 
 class PriorityRRScheduler(Scheduler):

@@ -2,7 +2,7 @@
 Priority Scheduler Implementation.
 """
 
-from scheduler import Scheduler
+from .scheduler import Scheduler
 
 class PriorityScheduler(Scheduler):
     """
