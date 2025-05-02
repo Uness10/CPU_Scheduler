@@ -6,12 +6,13 @@ This project implements a comprehensive CPU scheduling algorithms simulation wit
 1. [Project Overview](#project-overview)
 2. [Features](#features)
 3. [System Architecture](#system-architecture)
-4. [Scheduling Algorithms](#scheduling-algorithms)
-5. [Classes and Functions](#classes-and-functions)
-6. [Performance Metrics](#performance-metrics)
-7. [Visualization](#visualization)
-8. [Usage Instructions](#usage-instructions)
-9. [Implementation Details](#implementation-details)
+4. [Project Structure](#project-structure)
+5. [Scheduling Algorithms](#scheduling-algorithms)
+6. [Classes and Functions](#classes-and-functions)
+7. [Performance Metrics](#performance-metrics)
+8. [Visualization](#visualization)
+9. [Usage Instructions](#usage-instructions)
+10. [Implementation Details](#implementation-details)
 
 ## Project Overview
 
@@ -50,6 +51,64 @@ The project follows a client-server architecture with a clear separation of conc
 - Display of performance metrics
 - Interactive components for process management
 - Algorithm comparison tools
+
+## Project Structure
+
+The project is organized into backend and frontend directories:
+
+### Backend Structure
+```
+backend/
+├── requirements.txt            # Python dependencies
+└── src/                        # Source code directory
+    ├── main.py                 # Main API endpoints and entry point
+    ├── controllers/            # Controllers directory
+    │   └── simulation_controller.py  # Manages simulation process
+    ├── models/                 # Data models directory
+    │   └── process.py          # Process representation
+    ├── schedulers/             # Scheduling algorithms
+    │   ├── scheduler.py        # Abstract base scheduler
+    │   ├── fcfs_scheduler.py   # First-Come, First-Served
+    │   ├── sjf_scheduler.py    # Shortest Job First
+    │   ├── priority_scheduler.py  # Priority Scheduling
+    │   ├── round_robin_scheduler.py  # Round Robin
+    │   └── priority_rr_scheduler.py  # Priority Round Robin
+    └── utils/                  # Utility functions
+        └── process_generator.py  # Process generation functions
+```
+
+### Frontend Structure
+```
+frontend/
+├── package.json               # NPM dependencies
+├── babel.config.js            # Babel configuration
+├── vue.config.js              # Vue configuration
+├── tailwind.config.js         # Tailwind CSS configuration
+├── public/                    # Public assets
+│   ├── index.html             # HTML entry point
+│   └── favicon.ico            # Website favicon
+└── src/                       # Source code directory
+    ├── main.js                # Vue application entry point
+    ├── App.vue                # Main application component
+    ├── assets/                # Static assets
+    │   ├── logo.png           # Application logo
+    │   └── tailwind.css       # Tailwind CSS styles
+    ├── components/            # Reusable Vue components
+    │   ├── AlgorithmSelector.vue  # Algorithm selection component
+    │   ├── GanttChart.vue     # Gantt chart visualization
+    │   ├── ProcessTable.vue   # Process data table
+    │   ├── PerformanceMetrics.vue  # Metrics display
+    │   └── InteractiveVisualizer.vue  # Step-by-step visualization
+    ├── router/                # Vue Router configuration
+    │   └── index.js           # Routing definitions
+    ├── services/              # External services
+    │   └── api.js             # Backend API client
+    └── views/                 # Application views/pages
+        ├── HomeView.vue       # Home page
+        ├── ProcessesView.vue  # Process management page
+        ├── VisualizationView.vue  # Algorithm visualization page
+        └── ComparisonView.vue  # Algorithm comparison page
+```
 
 ## Scheduling Algorithms
 
