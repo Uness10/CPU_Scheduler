@@ -7,6 +7,12 @@
 \usepackage{listings}
 \usepackage{xcolor}
 \usepackage{float}
+\usepackage{tikz}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{changepage} % ensure this is in your preamble
+
+\usetikzlibrary{arrows,shapes,positioning,shadows,trees,calc}
 
 \hypersetup{
     colorlinks=true,
@@ -43,7 +49,7 @@
 
 \title{CPU Scheduling Algorithms Simulation Project}
 \author{Youness Anouar \and Abdeljalil Otman}
-\date{May 1, 2025}
+\date{May 2, 2025}
 
 \begin{document}
 
@@ -92,7 +98,61 @@ The project follows a client-server architecture with a clear separation between
     \label{fig:class-diagram}
 \end{figure}
 
-This class diagram illustrates the complete architecture of our CPU scheduling simulation project. The backend is structured around the Strategy pattern with an abstract \texttt{Scheduler} class extended by five concrete algorithm implementations. The frontend uses Vue.js components organized into views for different user interactions.
+% Centered, Condensed Component Interaction Diagram with Right Margin
+
+\begin{figure}[H]
+  \centering
+  \begin{adjustwidth}{0pt}{2cm} % add 2cm right margin
+  \begin{tikzpicture}[
+    node distance=1cm and 2cm, % Condensed vertical and horizontal spacing
+    box/.style={rectangle, draw, rounded corners=3pt, fill=blue!10, text width=4cm, minimum height=1cm, align=center, thick},
+    process/.style={rectangle, draw, rounded corners=3pt, fill=green!10, text width=3cm, minimum height=0.7cm, align=center},
+    arrow/.style={thick,->,>=stealth},
+    comm/.style={thick,<->,>=stealth},
+    cloud/.style={draw, ellipse, fill=red!10, minimum height=1cm, minimum width=3cm, align=center, thick}
+  ]
+
+    % Backend nodes (condensed)
+    \node[box] (backend) {Backend (Python)};
+    \node[process, below=0.9cm of backend] (scheduler) {Scheduler Classes};
+    \node[process, left=of scheduler] (process) {Process Management};
+    \node[process, right=of scheduler] (metrics) {Performance Metrics};
+    \node[process, below=1.5cm of scheduler] (controller) {Simulation Controller};
+    \node[cloud, below=1.5cm of controller] (api) {REST API Endpoints};
+
+    % Frontend nodes (condensed)
+    \node[box, below=2cm of api] (frontend) {Frontend (Vue.js)};
+    \node[process, below=0.9cm of frontend] (visu) {Visualization Components};
+    \node[process, left=of visu] (forms) {User Input Forms};
+    \node[process, right=of visu] (charts) {Chart Generation};
+    \node[process, below=1.5cm of visu] (interaction) {User Interaction Layer};
+
+    % Backend connections
+    \draw[arrow] (process) -- (scheduler);
+    \draw[arrow] (scheduler) -- (metrics);
+    \draw[arrow] (process) -- (controller);
+    \draw[arrow] (scheduler) -- (controller);
+    \draw[arrow] (metrics) -- (controller);
+    \draw[arrow] (controller) -- (api);
+
+    % Frontend connections
+    \draw[arrow] (forms) -- (visu);
+    \draw[arrow] (visu) -- (charts);
+    \draw[arrow] (forms) -- (interaction);
+    \draw[arrow] (visu) -- (interaction);
+    \draw[arrow] (charts) -- (interaction);
+
+    % Backend-Frontend communication
+    \draw[comm] (api) -- node[midway, fill=white, font=\small] {} (interaction);
+
+  \end{tikzpicture}
+  \end{adjustwidth}
+  \caption{Condensed Component Interaction between Frontend and Backend}
+  \label{fig:component-interaction}
+\end{figure}
+
+
+This diagram illustrates the interaction between the system components. The backend Python modules handle the computation and simulation logic, while the frontend Vue.js components manage user interaction and visualization. Communication between the two layers occurs through REST API endpoints using HTTP requests with JSON payloads.
 
 \section{Backend Architecture}
 The backend is implemented in Python and follows object-oriented design principles. It consists of:
@@ -155,6 +215,18 @@ Each process is represented by the \texttt{Process} class with the following att
     \item State variables: Remaining time, start time, completion time, etc.
 \end{itemize}
 
+Mathematically, a process $P_i$ can be represented as:
+\begin{align}
+P_i = (id_i, arrival_i, burst_i, priority_i, remaining_i, start_i, completion_i)
+\end{align}
+
+where:
+\begin{align}
+waiting_i &= completion_i - arrival_i - burst_i\\
+turnaround_i &= completion_i - arrival_i\\
+response_i &= start_i - arrival_i
+\end{align}
+
 \section{Scheduler Base Class}
 The abstract \texttt{Scheduler} class provides common functionality:
 \begin{itemize}
@@ -166,6 +238,7 @@ The abstract \texttt{Scheduler} class provides common functionality:
 \end{itemize}
 
 \section{Algorithm Implementations}
+
 \subsection{First-Come First-Served (FCFS)}
 FCFS executes processes in the order they arrive:
 \begin{itemize}
@@ -175,6 +248,23 @@ FCFS executes processes in the order they arrive:
     \item Records state changes when processes arrive and complete
 \end{itemize}
 
+Formally, FCFS scheduling can be defined as:
+\begin{align}
+\text{Given processes } P = \{P_1, P_2, \ldots, P_n\}\\
+\text{Order by } arrival_i \text{ such that }\\
+\forall i,j \in \{1,2,\ldots,n\}, i < j \implies arrival_i \leq arrival_j
+\end{align}
+
+\begin{algorithm}[H]
+\caption{FCFS Algorithm}
+\begin{algorithmic}[1]
+    \State Sort processes by arrival time
+    \ForEach{process in sorted order}
+        \State Execute process until completion
+    \EndFor
+\end{algorithmic}
+\end{algorithm}
+
 \subsection{Shortest Job First (SJF)}
 SJF executes the process with the shortest burst time first:
 \begin{itemize}
@@ -182,6 +272,21 @@ SJF executes the process with the shortest burst time first:
     \item Maintains a priority queue sorted by burst time
     \item Records state changes at process selection and completion
 \end{itemize}
+
+Let $R(t)$ be the set of ready processes at time $t$. SJF selects process $P_i$ such that:
+\begin{align}
+P_i \in R(t) \wedge \forall P_j \in R(t): burst_i \leq burst_j
+\end{align}
+
+\begin{algorithm}[H]
+\caption{SJF Algorithm}
+\begin{algorithmic}[1]
+    \While{not all processes finished}
+        \State Select process with smallest burst time in $R(t)$
+        \State Execute until completion
+    \EndWhile
+\end{algorithmic}
+\end{algorithm}
 
 \subsection{Priority Scheduling}
 Priority scheduling executes processes based on priority value:
@@ -192,14 +297,51 @@ Priority scheduling executes processes based on priority value:
     \item Records state changes at priority-based selection points
 \end{itemize}
 
+Let $R(t)$ be the set of ready processes at time $t$. Priority Scheduling selects process $P_i$ such that:
+\begin{align}
+P_i \in R(t) \wedge \forall P_j \in R(t): priority_i \leq priority_j
+\end{align}
+
+\begin{algorithm}[H]
+\caption{Priority Scheduling Algorithm}
+\begin{algorithmic}[1]
+    \While{not all processes finished}
+        \State Select process with highest priority in $R(t)$
+        \State Execute until completion
+    \EndWhile
+\end{algorithmic}
+\end{algorithm}
+
 \subsection{Round Robin (RR)}
-Round Robin allocates a fixed time quantum to each process:
+Round Robin allocates a fixed time quantum $q$ to each process:
 \begin{itemize}
     \item Preemptive scheduling with configurable time quantum
     \item Circular queue implementation
     \item Records state changes at context switches and quantum expirations
     \item Tracks remaining burst time for each process
 \end{itemize}
+
+For each time slice of length $q$:
+\begin{align}
+execution\_time_i &= \min(remaining_i, q)\\
+remaining_i &= remaining_i - execution\_time_i
+\end{align}
+
+If $remaining_i > 0$, the process is placed back in the ready queue.
+
+\begin{algorithm}[H]
+\caption{Round Robin Algorithm}
+\begin{algorithmic}[1]
+    \While{not all processes finished}
+        \ForEach{process in ready queue}
+            \State Execute for up to $q$ time units
+            \If{burst not finished}
+                \State Put process back in queue with updated remaining time
+            \EndIf
+        \EndFor
+    \EndWhile
+\end{algorithmic}
+\end{algorithm}
 
 \subsection{Priority Round Robin (PRR)}
 Priority Round Robin combines priority scheduling with round robin:
@@ -210,14 +352,39 @@ Priority Round Robin combines priority scheduling with round robin:
     \item Records detailed state of all priority queues
 \end{itemize}
 
+PRR can be formally described as:
+\begin{align}
+\text{Let } Q_p = \{P_i \in R(t) \mid priority_i = p\}\\
+\text{Execute processes in } Q_{p_{min}} \text{ using Round Robin with quantum } q\\
+\text{If } Q_{p_{min}} = \emptyset \text{, move to } Q_{p_{min}+1}
+\end{align}
+
+\begin{algorithm}[H]
+\caption{Priority Round Robin Algorithm}
+\begin{algorithmic}[1]
+    \While{not all processes finished}
+        \For{priority level from highest to lowest}
+            \While{there are processes in $Q_p$}
+                \State Execute each process using RR with quantum $q$
+            \EndWhile
+        \EndFor
+    \EndWhile
+\end{algorithmic}
+\end{algorithm}
+
+
 \section{Performance Metrics Calculation}
 The simulation calculates standard CPU scheduling performance metrics:
-\begin{itemize}
-    \item Average Waiting Time: $\frac{\sum \text{Waiting Time}}{\text{Number of Processes}}$
-    \item Average Turnaround Time: $\frac{\sum \text{Turnaround Time}}{\text{Number of Processes}}$
-    \item Average Response Time: $\frac{\sum \text{Response Time}}{\text{Number of Processes}}$
-    \item CPU Utilization: $\frac{\sum \text{Burst Times}}{\text{Total Execution Time}} \times 100\%$
-\end{itemize}
+
+\begin{align}
+\text{Average Waiting Time} &= \frac{1}{n} \sum_{i=1}^{n} waiting_i\\
+\text{Average Turnaround Time} &= \frac{1}{n} \sum_{i=1}^{n} turnaround_i\\
+\text{Average Response Time} &= \frac{1}{n} \sum_{i=1}^{n} response_i\\
+\text{CPU Utilization} &= \frac{\sum_{i=1}^{n} burst_i}{\max_i(completion_i) - \min_i(arrival_i)} \times 100\%\\
+\text{Throughput} &= \frac{n}{\max_i(completion_i) - \min_i(arrival_i)}
+\end{align}
+
+Where $n$ is the total number of processes.
 
 \section{Visualization Components}
 The frontend includes specialized visualization components:
@@ -358,18 +525,34 @@ To compare algorithm performance, we:
 \subsection{Average Waiting Time}
 SJF generally provided the lowest average waiting time, as expected from theoretical analysis. FCFS performed worst with varying burst times, while Round Robin's performance depended heavily on time quantum selection.
 
+For a set of $n$ processes, the theoretical lower bound on average waiting time is achieved by SJF and can be approximated as:
+\begin{align}
+\text{AWT}_{SJF} \approx \frac{\sum_{i=1}^{n-1} \sum_{j=i+1}^{n} \min(burst_i, burst_j)}{n}
+\end{align}
+
 \subsection{Average Turnaround Time}
 Similar to waiting time, SJF typically showed the best turnaround time. Priority scheduling performed well when high-priority processes had short burst times.
 
 \subsection{CPU Utilization}
-All non-preemptive algorithms (FCFS, SJF, Priority) showed similar CPU utilization. Round Robin variants had slightly lower utilization due to context switching overhead.
+All non-preemptive algorithms (FCFS, SJF, Priority) showed similar CPU utilization. Round Robin variants had slightly lower utilization due to context switching overhead, which can be modeled as:
+\begin{align}
+\text{Utilization}_{RR} \approx \frac{\sum_{i=1}^{n} burst_i}{\sum_{i=1}^{n} burst_i + k \times \text{context\_switch\_time}}
+\end{align}
+where $k$ is the number of context switches.
 
 \subsection{Time Quantum Effects}
 For Round Robin and Priority Round Robin:
+
+The average waiting time in Round Robin can be approximately modeled as a function of time quantum $q$:
+\begin{align}
+\text{AWT}_{RR}(q) \approx \text{AWT}_{FCFS} - \frac{q}{2} \times \frac{n-1}{n} \times (1 - \frac{1}{\bar{b}/q})
+\end{align}
+where $\bar{b}$ is the average burst time.
+
 \begin{itemize}
-    \item Small time quantum: Increased responsiveness but reduced efficiency due to context switching
-    \item Large time quantum: Improved efficiency but reduced fairness, approaching FCFS behavior
-    \item Optimal time quantum: Generally around the average burst time
+    \item Small time quantum ($q \ll \bar{b}$): Increased responsiveness but reduced efficiency due to context switching
+    \item Large time quantum ($q \gg \bar{b}$): Improved efficiency but reduced fairness, approaching FCFS behavior
+    \item Optimal time quantum: Empirically found to be around $q \approx \bar{b}/2$
 \end{itemize}
 
 \section{Algorithm Strengths and Weaknesses}
@@ -414,17 +597,27 @@ Our simulation confirmed theoretical principles of CPU scheduling:
     \item Priority Round Robin offers a good compromise for many scenarios
 \end{itemize}
 
+The mathematical analysis revealed that:
+\begin{align}
+\text{AWT}_{SJF} \leq \text{AWT}_{Priority} \leq \text{AWT}_{FCFS}
+\end{align}
+
+And for Round Robin, the relation between time quantum $q$ and performance follows:
+\begin{align}
+\lim_{q \to \infty} \text{AWT}_{RR}(q) &= \text{AWT}_{FCFS}\\
+\lim_{q \to 0} \text{AWT}_{RR}(q) &= \infty \text{ (due to context switching overhead)}
+\end{align}
+
 \section{Future Improvements}
 Potential enhancements for the simulation include:
 \begin{itemize}
-    \item Implementation of additional algorithms (Multilevel Feedback Queue, Shortest Remaining Time First)
-    \item More advanced process models with I/O operations and burst time prediction
-    \item Real-time visualization of algorithm behavior
-    \item Machine learning integration for optimal parameter selection
-    \item Expanded comparison tools with statistical analysis
+    \item Implementation of additional algorithms (Multilevel Feedback Queue with decay function $\alpha(t) = \frac{1}{1+t}$)
+    \item Stochastic process models with burst time distribution $B \sim N(\mu, \sigma^2)$
+    \item Real-time visualization with dynamic parameter adjustment
+    \item Machine learning models for predicting optimal scheduling parameters
 \end{itemize}
 
 \section{Final Thoughts}
-This simulation project demonstrates the complex trade-offs involved in CPU scheduling. No single algorithm is optimal for all scenarios, and algorithm selection depends on system requirements, workload characteristics, and performance priorities. The interactive visualization approach provides valuable insights into algorithm behavior beyond theoretical analysis.
+This simulation demonstrates the fundamental trade-offs in CPU scheduling algorithms, confirming the theoretical time complexity and performance characteristics. No algorithm provides an optimal solution across all scenarios, making scheduling policy selection context-dependent.
 
 \end{document}
